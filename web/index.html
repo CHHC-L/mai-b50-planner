@@ -530,7 +530,6 @@ function renderStrip(F) {
   dp.textContent = `+${d}`;
   $("c-plan").title = `计划比当前 +${d}`;
   dt.textContent = gap >= 0 ? `+${gap}` : String(gap);
-  $("c-target").title = gap > 0 ? `离目标还差 ${gap}` : gap === 0 ? "正好达到目标" : `超过目标 ${-gap}`;
   for (const [f, el] of [["new", "b15"], ["old", "b35"]]) {
     $(`s-${el}`).textContent = F[f].sum;
     $(`s-${el}-floor`).textContent = `min ${F[f].floor}`;
