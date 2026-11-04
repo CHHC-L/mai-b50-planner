@@ -1,0 +1,52 @@
+name: Update chart data
+
+# Every day: download the chart lists from DXRating, LXNS and Diving-Fish, rebuild data/ and web/data/, and commit
+# when any chart changed (new charts, constant changes, a new version). The commits double as a history of changes.
+# Fails, and GitHub emails you, when a new game version appears that scripts/update_data.py does not know yet.
+
+on:
+  schedule:
+    - cron: "37 19 * * *"  # 03:37 China time
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Download sources and rebuild
+        run: python3 scripts/update_data.py --strict
+      - name: Commit if any chart changed
+        id: commit
+        run: |
+          if git diff --quiet -- data/cn/charts.json data/jp/charts.json; then
+            echo "No chart changed."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/versions.json data/cn/charts.json data/jp/charts.json web/data/charts-cn.json
+          git commit -m "Update chart data $(date -u +%Y-%m-%d)"
+          git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: update
+    if: needs.update.outputs.changed == 'true'
+    uses: ./.github/workflows/pages.yml

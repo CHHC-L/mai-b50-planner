@@ -1,0 +1,14 @@
+# personal: tokens, imported scores, plans
+secrets.json
+data/player/
+
+# third-party source dumps; scripts/update_data.py downloads them again
+data/raw/
+
+# Diving-Fish proxy updater: the binary and its credentials
+tools/prober-proxy/credentials.json
+tools/prober-proxy/config.json
+tools/prober-proxy/maimaidx-prober-proxy-*
+
+__pycache__/
+.DS_Store

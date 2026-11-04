@@ -1,0 +1,252 @@
+{
+  "fetched_at": "2026-11-04T02:32:14+00:00",
+  "sources": {
+    "jp": {
+      "dxrating_catalog_updated_at": "2026-11-03T23:00:14.350596730+00:00"
+    },
+    "cn": {
+      "lxns_history_versions": [
+        20000,
+        21000,
+        22000,
+        23000,
+        24000,
+        25000
+      ]
+    }
+  },
+  "jp": {
+    "current": "MAGiCAL",
+    "rule": {
+      "new_versions": [
+        "MAGiCAL",
+        "CiRCLE PLUS"
+      ],
+      "ap_bonus": true
+    },
+    "versions": [
+      {
+        "id": 0,
+        "name": "maimai",
+        "abbr": "maimai (真)",
+        "release_date": "2012-07-11"
+      },
+      {
+        "id": 1,
+        "name": "maimai PLUS",
+        "abbr": "maimai+ (真)",
+        "release_date": "2012-12-13"
+      },
+      {
+        "id": 2,
+        "name": "GreeN",
+        "abbr": "GreeN (超)",
+        "release_date": "2013-07-11"
+      },
+      {
+        "id": 3,
+        "name": "GreeN PLUS",
+        "abbr": "GreeN+ (檄)",
+        "release_date": "2014-02-26"
+      },
+      {
+        "id": 4,
+        "name": "ORANGE",
+        "abbr": "ORANGE (橙)",
+        "release_date": "2014-09-18"
+      },
+      {
+        "id": 5,
+        "name": "ORANGE PLUS",
+        "abbr": "ORANGE+ (暁)",
+        "release_date": "2015-03-19"
+      },
+      {
+        "id": 6,
+        "name": "PiNK",
+        "abbr": "PiNK (桃)",
+        "release_date": "2015-12-09"
+      },
+      {
+        "id": 7,
+        "name": "PiNK PLUS",
+        "abbr": "PiNK+ (櫻)",
+        "release_date": "2016-06-30"
+      },
+      {
+        "id": 8,
+        "name": "MURASAKi",
+        "abbr": "MURASAKi (紫)",
+        "release_date": "2016-12-15"
+      },
+      {
+        "id": 9,
+        "name": "MURASAKi PLUS",
+        "abbr": "MURASAKi+ (菫)",
+        "release_date": "2017-06-22"
+      },
+      {
+        "id": 10,
+        "name": "MiLK",
+        "abbr": "MiLK (白)",
+        "release_date": "2017-12-14"
+      },
+      {
+        "id": 11,
+        "name": "MiLK PLUS",
+        "abbr": "MiLK+ (雪)",
+        "release_date": "2018-06-21"
+      },
+      {
+        "id": 12,
+        "name": "FiNALE",
+        "abbr": "FiNALE (輝)",
+        "release_date": "2018-12-13"
+      },
+      {
+        "id": 13,
+        "name": "maimaiでらっくす",
+        "abbr": "でらっくす (熊)",
+        "release_date": "2019-07-11"
+      },
+      {
+        "id": 14,
+        "name": "maimaiでらっくす PLUS",
+        "abbr": "でらっくす+ (華)",
+        "release_date": "2020-01-23"
+      },
+      {
+        "id": 15,
+        "name": "Splash",
+        "abbr": "Splash (爽)",
+        "release_date": "2020-09-17"
+      },
+      {
+        "id": 16,
+        "name": "Splash PLUS",
+        "abbr": "Splash+ (煌)",
+        "release_date": "2021-03-18"
+      },
+      {
+        "id": 17,
+        "name": "UNiVERSE",
+        "abbr": "UNiVERSE (宙)",
+        "release_date": "2021-09-16"
+      },
+      {
+        "id": 18,
+        "name": "UNiVERSE PLUS",
+        "abbr": "UNiVERSE+ (星)",
+        "release_date": "2022-03-24"
+      },
+      {
+        "id": 19,
+        "name": "FESTiVAL",
+        "abbr": "FESTiVAL (祭)",
+        "release_date": "2022-09-15"
+      },
+      {
+        "id": 20,
+        "name": "FESTiVAL PLUS",
+        "abbr": "FESTiVAL+ (祝)",
+        "release_date": "2023-03-23"
+      },
+      {
+        "id": 21,
+        "name": "BUDDiES",
+        "abbr": "BUDDiES (双)",
+        "release_date": "2023-09-14"
+      },
+      {
+        "id": 22,
+        "name": "BUDDiES PLUS",
+        "abbr": "BUDDiES+ (宴)",
+        "release_date": "2024-03-21"
+      },
+      {
+        "id": 23,
+        "name": "PRiSM",
+        "abbr": "PRiSM (鏡)",
+        "release_date": "2024-09-12"
+      },
+      {
+        "id": 24,
+        "name": "PRiSM PLUS",
+        "abbr": "PRiSM+ (彩)",
+        "release_date": "2025-03-13"
+      },
+      {
+        "id": 25,
+        "name": "CiRCLE",
+        "abbr": "CiRCLE (丸)",
+        "release_date": "2025-09-18"
+      },
+      {
+        "id": 26,
+        "name": "CiRCLE PLUS",
+        "abbr": "CiRCLE+",
+        "release_date": "2026-03-19"
+      },
+      {
+        "id": 27,
+        "name": "MAGiCAL",
+        "abbr": "MAGiCAL",
+        "release_date": "2026-09-17"
+      }
+    ]
+  },
+  "cn": {
+    "current": "舞萌DX 2026",
+    "jp_basis": "PRiSM PLUS",
+    "rule": {
+      "new_versions": [
+        "舞萌DX 2026"
+      ],
+      "ap_bonus": false
+    },
+    "versions": [
+      {
+        "code": 20000,
+        "name": "舞萌DX",
+        "jp_basis": "maimaiでらっくす",
+        "first_chart_release_date": "2019-12-05"
+      },
+      {
+        "code": 21000,
+        "name": "舞萌DX 2021",
+        "jp_basis": "Splash",
+        "first_chart_release_date": "2020-12-24"
+      },
+      {
+        "code": 22000,
+        "name": "舞萌DX 2022",
+        "jp_basis": "UNiVERSE",
+        "first_chart_release_date": "2022-06-23"
+      },
+      {
+        "code": 23000,
+        "name": "舞萌DX 2023",
+        "jp_basis": "FESTiVAL",
+        "first_chart_release_date": "2023-06-08"
+      },
+      {
+        "code": 24000,
+        "name": "舞萌DX 2024",
+        "jp_basis": "BUDDiES",
+        "first_chart_release_date": "2024-06-06"
+      },
+      {
+        "code": 25000,
+        "name": "舞萌DX 2025",
+        "jp_basis": "PRiSM",
+        "first_chart_release_date": "2025-06-11"
+      },
+      {
+        "code": 25500,
+        "name": "舞萌DX 2026",
+        "jp_basis": "PRiSM PLUS",
+        "first_chart_release_date": "2026-06-10"
+      }
+    ]
+  }
+}

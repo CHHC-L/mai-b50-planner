@@ -1,0 +1,976 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>舞萌 B50 规划</title>
+<script>try { const t = localStorage.getItem("mai-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap">
+<style>
+/* Layout (after Refactoring UI): no cards and no cell boxes. Hierarchy comes from weight and colour (primary in
+   --fg bold, secondary de-emphasised to --muted), grouping from spacing: tight inside a group, wide between groups. */
+:root {
+  --bg: #f7f7f8;
+  --fg: #17171a;
+  --muted: #6e6e78;
+  --faint: #b2b2ba;
+  --hover: #ececef;
+  --rule: #e3e3e7;
+  --accent: var(--fg);         /* emphasis is carried by weight, not hue */
+  --accent-soft: var(--hover);
+  --dim: #7c7c86;
+  --good: #12825a;
+  --warn: #b26400;
+  --bas: #1f9e50; --adv: #df7f0e; --exp: #df3550; --mas: #9040d6; --rem: #a673de;
+  --font-body: "Geist", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+  --font-num: var(--font-body);
+  --stripe: #f0f0f2;
+  --pop: #ffffff;
+  --shadow: rgba(0, 0, 0, .14);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b0b0c; --fg: #ececee; --muted: #9a9aa2; --faint: #58585f; --hover: #18181b; --rule: #222225;
+    --accent: var(--fg); --accent-soft: var(--hover); --dim: #6b6b73; --good: #43c991; --warn: #eba646; --stripe: #111113; --pop: #1c1c20; --shadow: rgba(0, 0, 0, .6);
+    --bas: #44c875; --adv: #f2a145; --exp: #f36a80; --mas: #b77cf3; --rem: #cfa9f6;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b0b0c; --fg: #ececee; --muted: #9a9aa2; --faint: #58585f; --hover: #18181b; --rule: #222225;
+  --accent: var(--fg); --accent-soft: var(--hover); --dim: #6b6b73; --good: #43c991; --warn: #eba646; --stripe: #111113; --pop: #1c1c20; --shadow: rgba(0, 0, 0, .6);
+  --bas: #44c875; --adv: #f2a145; --exp: #f36a80; --mas: #b77cf3; --rem: #cfa9f6;
+  color-scheme: dark;
+}
+:root[data-theme="light"] { color-scheme: light; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 14px; line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 64px;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 1200px; margin: 0 auto; }
+.wrap > * + * { margin-top: 48px; }
+.wrap > .board { margin-top: 10px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+h1 { font-size: 15px; font-weight: 700; }
+h2 { font-size: 13px; font-weight: 700; letter-spacing: .06em; color: var(--muted); }
+.num { font-family: var(--font-num); font-weight: 700; }
+.muted { color: var(--muted); }
+button, select, input { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: 0; padding: 0; }
+button:disabled { opacity: .45; cursor: default; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+input[type="checkbox"] { accent-color: var(--muted); margin: 0; }
+input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
+input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* text controls: muted until hovered or on */
+.link { color: var(--muted); font-size: 13px; padding: 2px 0; }
+.link:hover:not(:disabled) { color: var(--fg); }
+.link[aria-pressed="true"] { color: var(--accent); font-weight: 700; }
+.link.danger { color: var(--exp); font-weight: 700; }
+.icon-btn { align-self: center; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; color: var(--muted); border-radius: 6px; }
+.icon-btn:hover { color: var(--fg); background: var(--hover); }
+.icon-btn svg { width: 16px; height: 16px; display: block; }
+.bare { background: transparent; border: 0; padding: 0; color: var(--fg); font-weight: 700; cursor: pointer; }
+.bare:hover { color: var(--accent); }
+.line-input { background: transparent; border: 0; border-bottom: 1px solid var(--rule); padding: 0 2px; color: var(--fg); }
+.line-input:hover, .line-input:focus { border-bottom-color: var(--accent); outline: none; }
+
+/* header */
+header.top { padding-top: 22px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 24px; }
+.tools { margin-left: auto; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; }
+#asof { font-size: 13px; color: var(--muted); }
+.status { font-size: 13px; color: var(--muted); }
+.status:empty { display: none; }
+.status.err { color: var(--exp); }
+
+/* scoreboard */
+.board {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg);
+  padding-block: 6px 16px;
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 48px;
+  box-shadow: 0 14px 14px -16px var(--shadow);
+}
+/* one line, one size: now (quiet) → plan (bold) → target (editable); each step's difference sits on a thin arrow */
+.hero { display: flex; align-items: baseline; gap: 6px 10px; flex-wrap: wrap; }
+.hero .now, .hero .total, .target-input { font-family: var(--font-num); font-size: 40px; line-height: 1; letter-spacing: -.03em; }
+.hero .now { font-weight: 500; color: var(--muted); }
+.hero .total { font-weight: 700; }
+.conn { position: relative; top: 7px; align-self: center; width: 40px; height: 1.5px; background: var(--faint); }
+.conn::after { content: ""; position: absolute; right: 1px; top: -3.25px; width: 7px; height: 7px;
+  border-top: 1.5px solid var(--faint); border-right: 1.5px solid var(--faint); transform: rotate(45deg); }
+.conn b { position: absolute; left: 0; right: 6px; bottom: 6px; text-align: center; white-space: nowrap;
+  font-family: var(--font-num); font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: 0; }
+.target-input { width: 3em; font-weight: 500; color: var(--fg); padding: 0; }
+@media (max-width: 520px) {
+  .hero { gap: 4px 6px; }
+  .hero .now, .hero .total, .target-input { font-size: 26px; }
+  .conn { width: 32px; top: 5px; }
+}
+.target-input:focus { color: var(--fg); }
+.up { color: var(--good); }
+.gap { color: var(--warn); }
+.frames { margin-left: auto; display: flex; gap: 28px; }
+.frame-stat { display: flex; flex-direction: column; align-items: flex-end; min-width: 4.6em; text-align: right; }
+.frame-stat .k { font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--muted); }
+.frame-stat .v { font-family: var(--font-num); font-weight: 700; font-size: 22px; line-height: 1.15; letter-spacing: -.02em; }
+.frame-stat .s { font-size: 12px; color: var(--muted); }
+
+/* how-many grids */
+.matrices { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr)); gap: 28px 56px; }
+.matrix { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; }
+.grid { width: 100%; table-layout: fixed; }
+.grid th { font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: .04em; padding: 0 0 6px; text-align: center; }
+.grid th.corner { text-align: left; color: var(--fg); font-size: 13px; letter-spacing: .06em; }
+.grid th.row { text-align: left; font-family: var(--font-num); font-weight: 800; color: var(--fg); font-size: 14px; width: 52px; padding: 0; }
+.grid td { padding: 1px; text-align: center; }
+.grid tbody tr + tr > * { border-top: 1px solid var(--rule); }
+.grid thead th { border-bottom: 1px solid var(--rule); }
+/* every cell (and so every row) is the same height, whatever its emphasis */
+.cell { position: relative; width: 100%; height: 40px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 0 2px; line-height: 1; }
+.grid td:empty { height: 42px; }
+.cell .g { font-size: 11px; color: var(--dim); }
+button.cell:hover { background: var(--hover); }
+.cell .n { font-family: var(--font-num); font-weight: 500; font-size: 16px; color: var(--fg); }
+.cell .s { font-size: 11px; color: var(--dim); }
+.cell.t1 .n { color: var(--accent); font-weight: 800; font-size: 18px; }
+.cell.t2 .n { font-weight: 700; }
+.cell.partial .n { color: var(--dim); font-size: 14px; font-weight: 500; }
+.cell.selected { background: var(--accent-soft); }
+
+/* lower area */
+.lower { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 56px; align-items: start; }
+@media (max-width: 980px) { .lower { grid-template-columns: minmax(0, 1fr); gap: 44px; } }
+.col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: baseline; font-size: 13px; color: var(--muted);
+  padding-right: var(--table-inset, 0px); }
+.filters .group { display: inline-flex; gap: 2px; align-items: baseline; }
+.filters .group .link { width: 2.8em; text-align: left; }  /* fixed, so going bold does not push the row */
+.filters label { display: inline-flex; gap: 6px; align-items: baseline; }
+.filters input[type="number"] { width: 3.4em; text-align: center; }
+.filters input[type="search"] { flex: 1; min-width: 6em; }
+.filters select { font-weight: 700; }
+#f-line { width: 4.8em; }
+#f-sort { width: 7.6em; }
+
+.list { width: 100%; min-width: 560px; table-layout: fixed; }
+.list col.c-pick { width: 2.4em; } .list col.c-const { width: 5.5em; } .list col.c-cur { width: 7em; } .list col.c-tgt { width: 7.5em; } .list col.c-gain { width: 5.5em; }
+.list th { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: .04em; padding: 0 8px 8px; text-align: center; white-space: nowrap; }
+.list td { padding: 9px 8px; text-align: center; vertical-align: top; white-space: nowrap; }
+.list th.pick, .list td.pick { text-align: center; padding-right: 0; }
+.list td.pick input { margin-top: 3px; }
+.list td.title, .list th:nth-child(2) { text-align: left; }
+.list thead th { border-bottom: 1px solid var(--rule); }
+.list tbody tr:nth-child(even) td { background: var(--stripe); }
+.list tbody tr:hover td { background: var(--hover); }
+.list td:first-child { padding-left: 8px; }
+.list th:first-child { padding-left: 8px; }
+.list td .main { display: block; }
+.list td .sub { display: block; font-size: 12px; color: var(--muted); margin-top: 1px; }
+.list td.title { white-space: normal; overflow-wrap: anywhere; }
+.list td.title .main { font-weight: 500; }
+.list tr.inplan td.title .main { color: var(--accent); font-weight: 700; }
+.list .const { font-family: var(--font-num); font-weight: 700; font-size: 15px; }
+.list select { font-weight: 700; }
+.list select { width: 6.2em; text-align: center; text-align-last: center; }
+.gain { font-family: var(--font-num); font-weight: 700; color: var(--good); font-size: 15px; }
+.gain.zero { color: var(--faint); font-weight: 500; }
+.dt { font-weight: 700; }
+.dt.d-basic { color: var(--bas); } .dt.d-advanced { color: var(--adv); } .dt.d-expert { color: var(--exp); }
+.dt.d-master { color: var(--mas); } .dt.d-remaster { color: var(--rem); }
+.newtag { color: var(--accent); font-weight: 700; }
+.empty { color: var(--muted); font-size: 13px; padding: 8px 0; }
+.tip { position: relative; cursor: help; text-decoration: underline dotted var(--faint); text-underline-offset: 3px; }
+.tip .pop { position: absolute; left: 50%; top: calc(100% + 8px); transform: translateX(-50%); z-index: 20;
+  background: var(--pop); color: var(--fg); padding: 8px 14px; border-radius: 8px; box-shadow: 0 8px 24px rgba(15, 8, 30, .22);
+  display: flex; flex-direction: column; align-items: center; gap: 1px; letter-spacing: 0; text-align: center;
+  opacity: 0; pointer-events: none; transition: opacity .12s; }
+.tip:hover .pop, .tip:focus .pop { opacity: 1; }
+.tip .pop .main { font-family: var(--font-num); font-weight: 700; font-size: 15px; }
+.tip .pop .sub { font-size: 12px; font-weight: 400; color: var(--muted); }
+.more { align-self: flex-start; }
+
+aside.plan { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 96px); }
+@media (max-width: 980px) { aside.plan { position: static; } }
+.plan-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.plan-sum { font-size: 13px; color: var(--muted); }
+.plan-sum .gain { font-size: 16px; }
+.plan-items { display: flex; flex-direction: column; gap: 14px; }
+.pi { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1px 12px; align-items: baseline; }
+.pi .t { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+/* second line: type+difficulty | constant | current | → | target | target rating */
+.pi .info { font-size: 12px; color: var(--muted); display: grid; grid-template-columns: 6.4em 2.4em 4.8em 1em 5em 2.2em auto;
+  gap: 0 6px; align-items: baseline; white-space: nowrap; }
+.pi .info b { color: var(--fg); font-weight: 700; }
+.pi .info .r { color: var(--fg); font-weight: 600; text-align: right; }
+.pi .x { color: var(--faint); font-size: 15px; line-height: 1; padding: 0 2px; }
+.pi .x:hover { color: var(--exp); }
+.plan-actions { display: flex; gap: 18px; flex-wrap: wrap; align-items: baseline; }
+
+details.b50 summary { cursor: pointer; font-size: 13px; font-weight: 700; letter-spacing: .06em; color: var(--muted); list-style-position: inside; }
+details.b50 summary:hover { color: var(--fg); }
+.b50cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 24px 56px; margin-top: 16px; }
+.b50cols h3 { font-size: 13px; font-weight: 700; margin-bottom: 8px; display: flex; gap: 8px; align-items: baseline; }
+.b50cols h3 .num { font-size: 18px; }
+.b50cols ol { margin: 0; padding: 0; list-style: none; font-size: 13px; display: flex; flex-direction: column; gap: 3px; }
+.b50cols li { display: grid; grid-template-columns: 2.6em minmax(0, 1fr) auto; gap: 10px; align-items: baseline; }
+.b50cols li .num { font-size: 14px; }
+.b50cols li .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.b50cols li .s { font-size: 12px; color: var(--muted); }
+.b50cols li.planned .t, .b50cols li.planned .num { color: var(--accent); }
+/* desktop: the candidates and the plan scroll on their own, each with a quiet scrollbar against its right edge */
+.pane { scrollbar-width: thin; scrollbar-color: var(--rule) transparent; scrollbar-gutter: stable; }
+.pane:hover { scrollbar-color: var(--faint) transparent; }
+.pane::-webkit-scrollbar { width: 8px; height: 8px; }
+.pane::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 8px; border: 2px solid var(--bg); }
+.pane:hover::-webkit-scrollbar-thumb { background: var(--faint); }
+@media (min-width: 981px) {
+  .lower { height: calc(100dvh - var(--board-h, 120px) - env(safe-area-inset-top, 0px) - 24px); }
+  .lower > .col { height: 100%; min-height: 0; }
+  #cand-scroll { flex: 1; min-height: 0; overflow: auto; padding-right: 6px; }
+  .plan-items { flex: 1; min-height: 0; overflow-y: auto; padding-right: 10px; margin-right: -10px; }
+  aside.plan { position: static; }
+  .list thead th { position: sticky; top: 0; z-index: 2; background: var(--bg); border-bottom: 0; box-shadow: inset 0 -1px 0 var(--rule); }
+  .more { margin: 12px 0 4px; }
+}
+
+/* import dialog: the one boxed surface on the page */
+dialog { border: 0; padding: 0; background: var(--pop); color: var(--fg); border-radius: 14px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, .35); width: min(420px, calc(100vw - 32px)); }
+dialog::backdrop { background: rgba(0, 0, 0, .45); }
+dialog form { padding: 22px 24px 20px; display: flex; flex-direction: column; gap: 14px; }
+dialog h2 { font-size: 16px; color: var(--fg); letter-spacing: 0; }
+dialog .hint { margin: 0; font-size: 13px; color: var(--muted); }
+dialog .hint a { color: var(--fg); }
+dialog input[type="password"] { font-size: 15px; padding: 6px 2px; width: 100%; }
+dialog .remember { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
+dialog .status { margin: 0; min-height: 1.2em; }
+dialog .actions { display: flex; justify-content: flex-end; align-items: baseline; gap: 22px; }
+.primary { font-weight: 700; color: var(--fg); font-size: 14px; }
+.primary:disabled { opacity: .5; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>舞萌 B50 规划</h1>
+    <div class="tools">
+      <input id="asof" class="line-input" type="date" aria-label="按这一天已开放的谱面计算" title="按这一天已开放的谱面计算">
+      <span id="upcoming"></span>
+      <button type="button" class="icon-btn" id="theme"></button>
+      <button type="button" class="link" data-import="lxns">从落雪导入</button>
+      <button type="button" class="link" data-import="divingfish">从水鱼导入</button>
+      <span class="status" id="import-status"></span>
+    </div>
+  </header>
+
+  <div class="board">
+    <div class="hero">
+      <span class="now" id="s-now" title="当前">—</span>
+      <span class="conn" id="c-plan"><b id="s-delta-plan"></b></span>
+      <span class="total" id="s-plan" title="按计划">—</span>
+      <span class="conn" id="c-target"><b id="s-delta-target"></b></span>
+      <input id="target" class="target-input line-input" type="number" min="0" max="17000" step="1" aria-label="目标 rating" title="目标">
+    </div>
+    <div class="frames">
+      <div class="frame-stat"><span class="k">B15</span><span class="v" id="s-b15">—</span><span class="s" id="s-b15-floor"></span></div>
+      <div class="frame-stat"><span class="k">B35</span><span class="v" id="s-b35">—</span><span class="s" id="s-b35-floor"></span></div>
+    </div>
+  </div>
+
+  <section class="matrices" id="matrices"></section>
+
+  <div class="lower">
+    <section class="col" id="cands-card">
+      <h2>候选谱面</h2>
+      <div class="filters">
+        <span class="group seg" role="group" aria-label="框">
+          <button type="button" class="link" data-frame="all" aria-pressed="true">全部</button>
+          <button type="button" class="link" data-frame="new" aria-pressed="false">B15</button>
+          <button type="button" class="link" data-frame="old" aria-pressed="false">B35</button>
+        </span>
+        <label>定数 <input id="f-cmin" class="line-input" type="number" step="0.1" min="1" max="15" aria-label="最低定数">–<input id="f-cmax" class="line-input" type="number" step="0.1" min="1" max="15" aria-label="最高定数"></label>
+        <label>目标 <select id="f-line" class="bare"></select></label>
+        <label>排序 <select id="f-sort" class="bare">
+          <option value="gain">+rating</option>
+          <option value="close">离目标线最近</option>
+          <option value="const">定数</option>
+          <option value="fit">拟合偏简单</option>
+        </select></label>
+        <label><input id="f-gainonly" type="checkbox" checked> 仅显示能够+rating</label>
+        <input id="f-q" class="line-input" type="search" placeholder="搜曲名" aria-label="搜曲名">
+      </div>
+      <div class="scroll pane" id="cand-scroll">
+        <table class="list">
+          <colgroup><col class="c-pick"><col><col class="c-const"><col class="c-cur"><col class="c-tgt"><col class="c-gain"></colgroup>
+          <thead><tr><th class="pick"></th><th>曲名</th><th><span class="tip" tabindex="0" aria-describedby="tip-const">定数<span class="pop" id="tip-const" role="tooltip"><span class="main">官方定数</span><span class="sub">水鱼拟合定数</span></span></span></th><th>当前</th><th>目标</th><th>+rating</th></tr></thead>
+          <tbody id="cand-body"></tbody>
+        </table>
+        <button type="button" class="link more" id="more" hidden>Load more</button>
+      </div>
+    </section>
+
+    <aside class="col plan" id="plan-card">
+      <div class="plan-head">
+        <h2>计划</h2>
+        <span class="plan-sum"><span class="gain" id="plan-total"></span></span>
+      </div>
+      <div class="plan-items pane" id="plan-items"></div>
+      <div class="plan-actions">
+        <button type="button" class="link" id="export" hidden>导出 txt</button>
+        <button type="button" class="link" id="clear" hidden>清空</button>
+        <span class="status err" id="sync"></span>
+      </div>
+    </aside>
+  </div>
+
+  <details class="b50" id="b50">
+    <summary>B50方案</summary>
+    <div class="b50cols" id="b50cols"></div>
+  </details>
+</div>
+
+<dialog id="import-dialog" aria-labelledby="import-title">
+  <form id="import-form" novalidate>
+    <h2 id="import-title"></h2>
+    <p class="hint" id="import-hint"></p>
+    <input id="import-token" class="line-input" type="password" autocomplete="off" spellcheck="false" aria-label="token">
+    <label class="remember"><input id="import-remember" type="checkbox"> 在这个浏览器里记住</label>
+    <p class="status err" id="import-error"></p>
+    <div class="actions">
+      <button type="button" class="link" id="import-cancel">取消</button>
+      <button type="submit" class="primary" id="import-go">导入</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+/*CORE-START*/
+// Rating math, identical to rating.py: integers in 0.1 (constant), 0.0001% (achievement), 0.1 (coefficient).
+const COEF = [[0,0],[100000,16],[200000,32],[300000,48],[400000,64],[500000,80],[600000,96],[700000,112],[750000,120],
+  [799999,128],[800000,136],[900000,152],[940000,168],[969999,176],[970000,200],[980000,203],[989999,206],[990000,208],
+  [995000,211],[999999,214],[1000000,216],[1004999,222],[1005000,224]];
+const LINES = [[97,"S"],[98,"S+"],[99,"SS"],[99.5,"SS+"],[100,"SSS"],[100.5,"SSS+"]];
+const SIZE = { new: 15, old: 35 };
+
+function rate(c, ach) {
+  const u = Math.round(ach * 10000);
+  let k = 0;
+  for (const [t, v] of COEF) if (u >= t) k = v;
+  return Math.floor(Math.round(c * 10) * Math.min(u, 1005000) * k / 1e8);
+}
+function lineName(ach) {
+  let n = "";
+  for (const [t, name] of LINES) if (ach >= t) n = name;
+  return n || "—";
+}
+
+function makeCore(data, today) {
+  const charts = data.charts.map(r => ({
+    id: r[0], title: r[1], type: r[2], diff: r[3], level: r[4], c: r[5], fit: r[6], isNew: r[7],
+    ver: r[8], rel: r[9], ach: r[10], combo: r[11],
+  }));
+  const byId = new Map(charts.map(ch => [ch.id, ch]));
+  const released = ch => !ch.rel || ch.rel <= today;
+  const frameOf = ch => (ch.isNew ? "new" : "old");
+  const apBonus = (ch, ach) => (data.apBonus && ach === ch.ach && (ch.combo === "ap" || ch.combo === "app") ? 1 : 0);
+  const ratingAt = (ch, ach) => rate(ch.c, ach) + apBonus(ch, ach);
+
+  // The achievement a chart counts with under a plan (a planned target never lowers a score).
+  function achUnder(plan, ch) {
+    const p = plan.get(ch.id);
+    if (p == null) return ch.ach;
+    return ch.ach == null ? p : Math.max(ch.ach, p);
+  }
+
+  function frames(plan) {
+    const out = { new: [], old: [] };
+    for (const ch of charts) {
+      const a = achUnder(plan, ch);
+      if (a == null) continue;
+      out[frameOf(ch)].push({ ch, a, r: ratingAt(ch, a) });
+    }
+    let total = 0;
+    for (const f of ["new", "old"]) {
+      const all = out[f].sort((x, y) => y.r - x.r || y.a - x.a);
+      const top = all.slice(0, SIZE[f]);
+      const sum = top.reduce((s, e) => s + e.r, 0);
+      out[f] = { top, sum, floor: top.length ? top[top.length - 1].r : 0, full: top.length === SIZE[f],
+                 ids: new Set(top.map(e => e.ch.id)) };
+      total += sum;
+    }
+    out.total = total;
+    return out;
+  }
+
+  // B50 gain of raising one chart to `ach`, given the frames of the plan it would join.
+  function gainOf(F, ch, ach, plan) {
+    const fr = F[frameOf(ch)];
+    const cur = achUnder(plan, ch);
+    const r0 = cur == null ? 0 : ratingAt(ch, cur);
+    const r = rate(ch.c, ach);
+    if (r <= r0) return 0;
+    if (fr.ids.has(ch.id)) return r - r0;
+    if (!fr.full) return r;
+    return Math.max(0, r - fr.floor);
+  }
+
+  // How many charts of constant c in frame f, pushed to `line`, close `gap`. Greedy on the true marginal gain.
+  function needCount(F, plan, f, c, line, gap) {
+    const rT = rate(c, line);
+    const cands = charts.filter(ch => frameOf(ch) === f && ch.c === c && released(ch)
+      && ((achUnder(plan, ch) ?? -1) < line) && rate(c, line) > (achUnder(plan, ch) == null ? 0 : ratingAt(ch, achUnder(plan, ch))));
+    const top = F[f].top.map(e => ({ id: e.ch.id, r: e.r }));
+    const cur = new Map(cands.map(ch => { const a = achUnder(plan, ch); return [ch.id, a == null ? 0 : ratingAt(ch, a)]; }));
+    const left = new Set(cands.map(ch => ch.id));
+    let gained = 0, count = 0;
+    while (left.size && gained < gap) {
+      const full = top.length === SIZE[f];
+      const floor = full ? top[top.length - 1].r : 0;
+      const inTop = new Set(top.map(e => e.id));
+      let best = null, bestGain = 0;
+      for (const id of left) {
+        const g = inTop.has(id) ? rT - cur.get(id) : (full ? rT - floor : rT);
+        if (g > bestGain) { bestGain = g; best = id; }
+      }
+      if (!best) break;
+      if (inTop.has(best)) top.find(e => e.id === best).r = rT;
+      else { if (full) top.pop(); top.push({ id: best, r: rT }); }
+      top.sort((x, y) => y.r - x.r);
+      left.delete(best);
+      gained += bestGain;
+      count += 1;
+    }
+    return { rT, count, gained, avail: cands.length, reached: gained >= gap };
+  }
+
+  return { charts, byId, released, frameOf, ratingAt, achUnder, frames, gainOf, needCount };
+}
+/*CORE-END*/
+
+const TODAY = new Date(Date.now() + 8 * 3600e3).toISOString().slice(0, 10); // CN date
+let DATA = null, core = null, NOW = null;
+const DIFF_SHORT = { basic: "BAS", advanced: "ADV", expert: "EXP", master: "MAS", remaster: "Re:M" };
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+
+const state = {
+  target: null,               // set from the data on load
+  plan: new Map(),            // chart id -> planned achievement
+  frame: "all", cmin: null, cmax: null, line: 100.5, sort: "gain", gainOnly: true, q: "",
+  shown: 60, selectedCell: null,
+  rowTarget: new Map(),       // chart id -> target picked on a row that is not in the plan
+  order: null,                // candidate ids as last filtered and sorted; edits on the rows keep it
+  asof: TODAY,                // charts released on or before this date are playable
+};
+
+function fmtAch(a) { return a == null ? "未玩" : a.toFixed(4); }
+function metaLine(ch) {
+  return `${ch.type === "dx" ? "DX" : "SD"} <span class="dt d-${ch.diff}">${DIFF_SHORT[ch.diff]}</span>`
+    + (ch.isNew ? ` <span class="newtag">新曲</span>` : "");
+}
+
+// ---------- storage: this browser, and data/player/ as well when served by serve.py ----------
+const KEYS = { profile: "mai-profile", plan: "mai-plan", tokens: "mai-tokens" };
+const local = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+};
+let SERVER = false;  // serve.py answers /api/plan; a static host (GitHub Pages) does not
+async function getJson(url) {
+  try { const r = await fetch(url, { cache: "no-store" }); return r.ok ? await r.json() : null; } catch (e) { return null; }
+}
+
+const store = { timer: null, chain: Promise.resolve() };
+function serial() { return { target: state.target, items: Object.fromEntries(state.plan) }; }
+function applySerial(s) {
+  if (!s) return;
+  if (typeof s.target === "number") state.target = s.target;
+  state.plan = new Map(Object.entries(s.items || {}).filter(([id]) => core.byId.has(id)).map(([id, a]) => [id, Number(a)]));
+}
+function setSync(text) { $("sync").textContent = text; }
+function saveSoon() {
+  local.set(KEYS.plan, serial());
+  if (!SERVER) return;
+  clearTimeout(store.timer);
+  store.timer = setTimeout(() => {
+    const body = JSON.stringify(serial());
+    store.chain = store.chain
+      .then(() => fetch("/api/plan", { method: "PUT", headers: { "Content-Type": "application/json" }, body }))
+      .then(r => { if (!r.ok) throw new Error(r.status); setSync(""); })
+      .catch(() => setSync("没能写入 plan.json，计划仍保存在浏览器里"));
+  }, 600);
+}
+
+// ---------- rendering ----------
+function render() {
+  saveView();
+  const F = core.frames(state.plan);
+  renderStrip(F);
+  renderMatrices(F);
+  renderCandidates(F);
+  renderPlan(F);
+  renderB50(F);
+}
+
+function renderStrip(F) {
+  $("s-now").textContent = NOW.total;
+  $("s-plan").textContent = F.total;
+  if (document.activeElement !== $("target")) $("target").value = state.target;
+  const d = F.total - NOW.total, gap = state.target - F.total;
+  const dp = $("s-delta-plan"), dt = $("s-delta-target");
+  dp.textContent = `+${d}`;
+  $("c-plan").title = `计划比当前 +${d}`;
+  dt.textContent = gap > 0 ? `+${gap}` : gap === 0 ? "达成" : `超 ${-gap}`;
+  $("c-target").title = gap > 0 ? `离目标还差 ${gap}` : gap === 0 ? "正好达到目标" : `超过目标 ${-gap}`;
+  for (const [f, el] of [["new", "b15"], ["old", "b35"]]) {
+    $(`s-${el}`).textContent = F[f].sum;
+    $(`s-${el}-floor`).textContent = `min ${F[f].floor}`;
+  }
+}
+
+function constantsFor(f, F) {
+  const set = new Set();
+  for (const ch of core.charts) {
+    if (core.frameOf(ch) !== f || !core.released(ch)) continue;
+    if (rate(ch.c, 100.5) > (F[f].full ? F[f].floor : 0)) set.add(ch.c);
+  }
+  return [...set].sort((a, b) => b - a);
+}
+
+function renderMatrices(F) {
+  const gap = state.target - F.total;
+  // Once the plan meets the target, each cell shows what the best single chart of that kind would still add.
+  const reached = gap <= 0;
+  const cols = LINES.filter(([t]) => t >= 99);
+  $("matrices").innerHTML = ["new", "old"].map(f => {
+    const label = f === "new" ? "B15" : "B35";
+    const rows = constantsFor(f, F);
+    const all = rows.map(c => cols.map(([t]) => core.needCount(F, state.plan, f, c, t, reached ? 1 : gap)));
+    const useful = r => r.avail && r.gained > 0;
+    const colIdx = cols.map((_, j) => j).filter(j => all.some(row => useful(row[j])));
+    const rowIdx = rows.map((_, i) => i).filter(i => colIdx.some(j => useful(all[i][j])));
+    if (!rowIdx.length) return `<div class="matrix"><table class="grid"><thead><tr><th class="corner">${label}</th></tr></thead></table><div class="empty">没有能涨分的谱面</div></div>`;
+    const vcols = colIdx.map(j => cols[j]);
+    const results = rowIdx.map(i => colIdx.map(j => all[i][j]));
+    const score = r => (reached ? r.gained : -r.count);  // higher is better
+    const scored = results.flat().filter(r => useful(r) && r.reached).map(score);
+    const lo = Math.min(...scored), hi = Math.max(...scored);
+    const tier = r => { const x = hi === lo ? 1 : (score(r) - lo) / (hi - lo); return x >= 0.67 ? " t1" : x >= 0.34 ? " t2" : ""; };
+    return `<div class="matrix scroll"><table class="grid"><thead><tr><th class="corner">${label}</th>`
+      + vcols.map(([, n]) => `<th>${n}</th>`).join("") + `</tr></thead><tbody>`
+      + rowIdx.map((i, ri) => {
+        const c = rows[i];
+        return `<tr><th class="row">${c.toFixed(1)}</th>` + results[ri].map((r, j) => {
+          const [t] = vcols[j];
+          if (!useful(r)) return `<td></td>`;
+          const key = `${f}|${c}|${t}`;
+          const sel = state.selectedCell === key ? " selected" : "";
+          const cls = r.reached ? tier(r) : " partial";
+          const n = !r.reached || reached ? `+${r.gained}` : r.count;
+          return `<td><button type="button" class="cell${cls}${sel}" data-cell="${key}">`
+            + `<span class="n">${n}</span>` + (r.reached && !reached ? `<span class="g">+${r.gained}</span>` : "")
+            + `<span class="s">${r.rT}</span></button></td>`;
+        }).join("") + `</tr>`;
+      }).join("") + `</tbody></table></div>`;
+  }).join("");
+}
+
+function candidateRow(ch, F) {
+  const inPlan = state.plan.has(ch.id);
+  let gain = 0;
+  if (inPlan) {
+    const without = new Map(state.plan); without.delete(ch.id);
+    gain = F.total - core.frames(without).total;
+  } else {
+    const t = rowTargetOf(ch);
+    gain = t == null ? 0 : core.gainOf(F, ch, t, state.plan);
+  }
+  return { ch, gain, inPlan };
+}
+
+function candidateRows(F) {
+  const q = state.q.trim().toLowerCase();
+  const rows = [];
+  for (const ch of core.charts) {
+    if (!core.released(ch)) continue;
+    if (state.frame !== "all" && core.frameOf(ch) !== state.frame) continue;
+    if (state.cmin != null && ch.c < state.cmin - 1e-9) continue;
+    if (state.cmax != null && ch.c > state.cmax + 1e-9) continue;
+    if (q && !ch.title.toLowerCase().includes(q)) continue;
+    const row = candidateRow(ch, F);
+    if (state.gainOnly && !row.inPlan && row.gain <= 0) continue;
+    rows.push(row);
+  }
+  const close = r => (r.ch.ach == null ? 99 : (rowTargetOf(r.ch) ?? 999) - r.ch.ach);
+  const fitGap = r => (r.ch.fit == null ? 0 : r.ch.fit - r.ch.c);
+  const sorters = {
+    gain: (a, b) => b.inPlan - a.inPlan || b.gain - a.gain || b.ch.c - a.ch.c,
+    close: (a, b) => b.inPlan - a.inPlan || close(a) - close(b) || b.gain - a.gain,
+    const: (a, b) => b.inPlan - a.inPlan || b.ch.c - a.ch.c || b.gain - a.gain,
+    fit: (a, b) => b.inPlan - a.inPlan || fitGap(a) - fitGap(b) || b.gain - a.gain,
+  };
+  return rows.sort(sorters[state.sort]);
+}
+
+// The achievements worth aiming at on a chart: each rank line from S up, plus, from SS up, every point inside a
+// rank where the chart's rating goes up by one (e.g. SSS 100.0 → 315, 100.2778 → 316 on a 14.6). The x.9999 points
+// are left out: a single 0.0001% is not a target anyone plays for.
+function stepPoints(ch) {
+  const c10 = Math.round(ch.c * 10);
+  const units = [970000, 980000, 990000, 995000, 1000000, 1005000];
+  for (const [lo, hi, k] of [[990000, 995000, 208], [995000, 999999, 211], [1000000, 1004999, 216]]) {
+    for (let r = Math.floor(c10 * lo * k / 1e8) + 1; r <= Math.floor(c10 * (hi - 1) * k / 1e8); r++) {
+      const u = Math.ceil(r * 1e8 / (c10 * k));
+      if (u > lo && u < hi) units.push(u);
+    }
+  }
+  const cur = ch.ach == null ? -1 : Math.round(ch.ach * 10000);
+  const curRating = ch.ach == null ? 0 : rate(ch.c, ch.ach);
+  return [...new Set(units)].sort((a, b) => a - b).filter(u => u > cur)
+    .map(u => ({ ach: u / 10000, rating: rate(ch.c, u / 10000), line: LINES.some(([t]) => Math.round(t * 10000) === u) }))
+    .filter(p => p.rating > curRating);
+}
+function stepOptions(ch, planned) {
+  const pts = stepPoints(ch);
+  if (planned != null && !pts.some(p => p.ach === planned)) {
+    pts.push({ ach: planned, rating: rate(ch.c, planned), line: false });
+    pts.sort((a, b) => a.ach - b.ach);
+  }
+  return pts.map(p => `<option value="${p.ach}"${p.ach === planned ? " selected" : ""}>`
+    + `${p.line ? lineName(p.ach) : p.ach.toFixed(4)}</option>`).join("");
+}
+// A row's target: the planned one, else what was picked on the row, else the 目标 filter's line (or the nearest
+// step above it when the chart is already past that line).
+function rowTargetOf(ch) {
+  if (state.plan.has(ch.id)) return state.plan.get(ch.id);
+  if (state.rowTarget.has(ch.id)) return state.rowTarget.get(ch.id);
+  const pts = stepPoints(ch);
+  return (pts.find(p => p.ach >= state.line) ?? pts[pts.length - 1])?.ach ?? null;
+}
+function targetSelect(ch) {
+  const t = rowTargetOf(ch);
+  if (t == null) return `<span class="main muted">—</span>`;
+  return `<select class="bare" data-target="${esc(ch.id)}" aria-label="目标">${stepOptions(ch, t)}</select>`;
+}
+
+// The list is filtered and sorted only when a filter or a grid cell is applied. Ticking a row or changing its target
+// updates the values in place, so the row does not jump away or vanish while it is being edited.
+function renderCandidates(F) {
+  if (!state.order) { state.order = candidateRows(F).map(r => r.ch.id); $("cand-scroll").scrollTop = 0; }
+  const rows = state.order.slice(0, state.shown).map(id => candidateRow(core.byId.get(id), F));
+  $("cand-body").innerHTML = rows.map(({ ch, gain, inPlan }) => {
+    const r0 = ch.ach == null ? "" : core.ratingAt(ch, ch.ach);
+    const t = rowTargetOf(ch);
+    return `<tr class="${inPlan ? "inplan" : ""}">`
+      + `<td class="pick"><input type="checkbox" data-pick="${esc(ch.id)}"${inPlan ? " checked" : ""}${t == null ? " disabled" : ""} aria-label="加入计划" title="加入计划"></td>`
+      + `<td class="title"><span class="main">${esc(ch.title)}</span><span class="sub">${metaLine(ch)}</span></td>`
+      + `<td><span class="main const">${ch.c.toFixed(1)}</span><span class="sub">${ch.fit == null ? "—" : ch.fit.toFixed(2)}</span></td>`
+      + `<td><span class="main">${ch.ach == null ? "" : fmtAch(ch.ach)}</span><span class="sub">${r0}</span></td>`
+      + `<td>${targetSelect(ch)}<span class="sub">${t == null ? "" : rate(ch.c, Math.max(t, ch.ach ?? 0))}</span></td>`
+      + `<td><span class="main gain${gain > 0 ? "" : " zero"}">${gain > 0 ? "+" + gain : "0"}</span></td></tr>`;
+  }).join("") || `<tr><td colspan="6" class="empty">没有符合条件的谱面</td></tr>`;
+  $("more").hidden = state.order.length <= state.shown;
+}
+
+// Plan entries with what each adds: the B50 total minus the total without it. B15 first, then by that gain.
+function planItems(F) {
+  return [...state.plan.entries()].map(([id, a]) => {
+    const ch = core.byId.get(id);
+    const without = new Map(state.plan); without.delete(id);
+    return { ch, a, contrib: F.total - core.frames(without).total };
+  }).sort((x, y) => (x.ch.isNew === y.ch.isNew ? y.contrib - x.contrib : (y.ch.isNew ? 1 : -1)));
+}
+
+function renderPlan(F) {
+  const items = planItems(F);
+  $("plan-total").textContent = items.length ? `+${F.total - NOW.total}` : "";
+  $("plan-items").innerHTML = items.length ? items.map(({ ch, a, contrib }) =>
+    `<div class="pi"><span class="t">${esc(ch.title)}</span><span class="gain${contrib > 0 ? "" : " zero"}">+${contrib}</span>`
+    + `<span class="info"><span>${metaLine(ch)}</span><b>${ch.c.toFixed(1)}</b><span>${fmtAch(ch.ach)}</span><span>→</span>`
+    + `<b>${LINES.some(([t]) => t === a) ? lineName(a) : a.toFixed(4)}</b>`
+    + `<span class="r">${rate(ch.c, Math.max(a, ch.ach ?? 0))}</span>`
+    + `</span>`
+    + `<button type="button" class="x" data-remove="${esc(ch.id)}" aria-label="移出计划" title="移出计划">×</button></div>`
+  ).join("") : `<div class="empty">还没有谱面</div>`;
+  $("clear").hidden = !items.length;
+  $("export").hidden = !items.length;
+}
+
+function renderB50(F) {
+  if (!$("b50").open) return;
+  const col = (f, label) => `<div><h3>${label} <span class="num">${F[f].sum}</span></h3><ol>`
+    + F[f].top.map(e => `<li class="${state.plan.has(e.ch.id) ? "planned" : ""}"><span class="num">${e.r}</span>`
+      + `<span class="t">${esc(e.ch.title)}</span><span class="s">${e.ch.c.toFixed(1)} · ${e.a.toFixed(4)}</span></li>`).join("")
+    + `</ol></div>`;
+  $("b50cols").innerHTML = col("new", "B15") + col("old", "B35");
+}
+
+// ---------- events ----------
+function setFrameButtons() {
+  document.querySelectorAll("[data-frame]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.frame === state.frame)));
+}
+document.querySelector(".seg").addEventListener("click", e => {
+  const b = e.target.closest("[data-frame]"); if (!b) return;
+  state.frame = b.dataset.frame; state.selectedCell = null; state.shown = 60; state.order = null; setFrameButtons(); render();
+});
+$("matrices").addEventListener("click", e => {
+  const b = e.target.closest("[data-cell]"); if (!b) return;
+  const [f, c, t] = b.dataset.cell.split("|");
+  state.selectedCell = b.dataset.cell; state.frame = f; state.cmin = state.cmax = Number(c); state.line = Number(t); state.rowTarget.clear();
+  state.gainOnly = true; state.shown = 60; state.order = null;
+  $("f-cmin").value = $("f-cmax").value = Number(c).toFixed(1); $("f-line").value = t; $("f-gainonly").checked = true;
+  setFrameButtons(); render();
+  // land with the "候选谱面" heading just below the sticky scoreboard, not underneath it
+  const top = $("cands-card").getBoundingClientRect().top + scrollY - document.querySelector(".board").offsetHeight - 16;
+  scrollTo({ top, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+});
+const numOrNull = v => (v === "" ? null : Number(v));
+$("f-cmin").addEventListener("input", e => { state.cmin = numOrNull(e.target.value); state.selectedCell = null; state.order = null; render(); });
+$("f-cmax").addEventListener("input", e => { state.cmax = numOrNull(e.target.value); state.selectedCell = null; state.order = null; render(); });
+$("f-line").innerHTML = LINES.map(([t, n]) => `<option value="${t}">${n}</option>`).join("");
+$("f-line").addEventListener("change", e => { state.line = Number(e.target.value); state.rowTarget.clear(); state.selectedCell = null; state.order = null; render(); });
+$("f-sort").addEventListener("change", e => { state.sort = e.target.value; state.order = null; render(); });
+$("f-gainonly").addEventListener("change", e => { state.gainOnly = e.target.checked; state.order = null; render(); });
+$("f-q").addEventListener("input", e => { state.q = e.target.value; state.shown = 60; state.order = null; render(); });
+$("more").addEventListener("click", () => { state.shown += 60; render(); });
+$("target").addEventListener("input", e => {
+  const v = Number(e.target.value);
+  if (Number.isFinite(v) && v > 0) { state.target = Math.round(v); saveSoon(); render(); }
+});
+$("cand-body").addEventListener("change", e => {
+  const pick = e.target.closest("[data-pick]");
+  if (pick) {
+    const id = pick.dataset.pick;
+    if (pick.checked) { const t = rowTargetOf(core.byId.get(id)); if (t != null) state.plan.set(id, t); state.rowTarget.delete(id); }
+    else state.plan.delete(id);
+    saveSoon(); render();
+    return;
+  }
+  const s = e.target.closest("[data-target]"); if (!s) return;
+  const id = s.dataset.target, v = Number(s.value);
+  if (state.plan.has(id)) { state.plan.set(id, v); saveSoon(); }
+  else state.rowTarget.set(id, v);
+  render();
+});
+$("plan-items").addEventListener("click", e => {
+  const b = e.target.closest("[data-remove]"); if (!b) return;
+  state.plan.delete(b.dataset.remove); saveSoon(); render();
+});
+$("export").addEventListener("click", () => {
+  const items = planItems(core.frames(state.plan));
+  const text = items.map(({ ch, contrib }) =>
+    `${ch.title} (${ch.type === "dx" ? "DX" : "SD"} ${DIFF_SHORT[ch.diff]}) ${ch.c.toFixed(1)} +${contrib}`).join("\n") + "\n";
+  const url = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
+  const a = Object.assign(document.createElement("a"), { href: url, download: `b50-plan-${TODAY}.txt` });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+let clearArmed = null;
+$("clear").addEventListener("click", e => {
+  if (!clearArmed) {
+    e.target.textContent = "再点一次清空"; e.target.classList.add("danger");
+    clearArmed = setTimeout(() => { clearArmed = null; e.target.textContent = "清空"; e.target.classList.remove("danger"); }, 3000);
+    return;
+  }
+  clearTimeout(clearArmed); clearArmed = null; e.target.textContent = "清空"; e.target.classList.remove("danger");
+  state.plan.clear(); saveSoon(); render();
+});
+$("b50").addEventListener("toggle", () => renderB50(core.frames(state.plan)));
+
+// ---------- view settings: remembered in this browser so a reload keeps them ----------
+const VIEW_KEY = "mai-b50-view";
+const VIEW_FIELDS = ["frame", "cmin", "cmax", "line", "sort", "gainOnly", "q", "asof"];
+function saveView() {
+  try { localStorage.setItem(VIEW_KEY, JSON.stringify(Object.fromEntries(VIEW_FIELDS.map(k => [k, state[k]])))); } catch (e) {}
+}
+function restoreView() {
+  let v = null;
+  try { v = JSON.parse(localStorage.getItem(VIEW_KEY) || "null"); } catch (e) {}
+  if (v) for (const k of VIEW_FIELDS) if (k in v) state[k] = v[k];
+  if (!state.asof || state.asof < TODAY) state.asof = TODAY;
+  $("f-cmin").value = state.cmin ?? ""; $("f-cmax").value = state.cmax ?? "";
+  $("f-line").value = String(state.line); $("f-sort").value = state.sort;
+  $("f-gainonly").checked = state.gainOnly; $("f-q").value = state.q;
+  $("asof").value = state.asof;
+  setFrameButtons();
+}
+function renderUpcoming() {
+  const byDate = new Map();
+  for (const ch of core.charts) if (ch.rel && ch.rel > TODAY) {
+    const titles = byDate.get(ch.rel) || new Set(); titles.add(ch.title); byDate.set(ch.rel, titles);
+  }
+  const dates = [...byDate.keys()].sort();
+  const month = d => `${Number(d.slice(5, 7))}月`;
+  const label = d => dates.filter(x => month(x) === month(d)).length > 1 ? `${month(d)}${Number(d.slice(8))}日更新后` : `${month(d)}更新后`;
+  $("upcoming").innerHTML = dates.map(d => `<button type="button" class="link" data-asof="${d}" aria-pressed="${state.asof >= d}" title="按 ${d} 开放的 ${byDate.get(d).size} 首新曲计算">${label(d)}</button>`).join(" ")
+    + (state.asof > TODAY ? ` <button type="button" class="link" data-asof="${TODAY}">今天</button>` : "");
+}
+function setAsof(d) {
+  state.asof = d < TODAY ? TODAY : d;
+  $("asof").value = state.asof;
+  core = makeCore(DATA, state.asof);
+  NOW = core.frames(new Map());
+  state.selectedCell = null; state.order = null;
+  saveView(); renderUpcoming(); render();
+}
+$("asof").addEventListener("change", e => { if (e.target.value) setAsof(e.target.value); });
+$("upcoming").addEventListener("click", e => { const b = e.target.closest("[data-asof]"); if (b) setAsof(b.dataset.asof); });
+
+// ---------- colour mode: follow the system, or force light / dark (remembered in this browser) ----------
+const THEMES = [["auto", "跟随系统"], ["light", "浅色"], ["dark", "深色"]];
+const THEME_ICONS = {
+  auto: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg>',
+  light: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>',
+  dark: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.6A8.2 8.2 0 0 1 9.4 4a8.2 8.2 0 1 0 10.6 10.6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+};
+function currentTheme() { return document.documentElement.dataset.theme || "auto"; }
+function showTheme() {
+  const t = currentTheme(), name = THEMES.find(([k]) => k === t)[1];
+  $("theme").innerHTML = THEME_ICONS[t];
+  $("theme").title = `颜色：${name}（点击切换）`;
+  $("theme").setAttribute("aria-label", `颜色模式：${name}`);
+}
+$("theme").addEventListener("click", () => {
+  const next = THEMES[(THEMES.findIndex(([k]) => k === currentTheme()) + 1) % THEMES.length][0];
+  if (next === "auto") delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = next;
+  try { if (next === "auto") localStorage.removeItem("mai-theme"); else localStorage.setItem("mai-theme", next); } catch (e) {}
+  showTheme();
+});
+showTheme();
+
+// ---------- data: the static chart list + the player's scores (imported here, or saved by scores.py) ----------
+const DIFFS = ["basic", "advanced", "expert", "master", "remaster"];
+let CATALOG = null, PROFILE = null, MANUAL = [];
+function newer(a, b) { return !a ? b : !b ? a : (a.fetchedAt >= b.fetchedAt ? a : b); }
+function buildData() {
+  const best = new Map();
+  for (const s of [...(PROFILE?.scores || []), ...MANUAL]) {
+    const id = `${s.music_id}:${s.type}:${s.difficulty}`;
+    if (!best.has(id) || s.achievement > best.get(id).achievement) best.set(id, s);
+  }
+  DATA = { ...CATALOG, charts: CATALOG.charts.map(r => { const s = best.get(r[0]); return [...r, s ? s.achievement : null, s?.combo ?? null]; }) };
+  core = makeCore(DATA, state.asof);
+  NOW = core.frames(new Map());
+  state.order = null;
+}
+async function boot() {
+  restoreView();
+  CATALOG = await getJson("data/charts-cn.json");
+  if (!CATALOG) {
+    $("import-status").textContent = "谱面数据没有加载出来，刷新试试";
+    $("import-status").classList.add("err");
+    return;
+  }
+  const serverPlan = await getJson("/api/plan");
+  SERVER = serverPlan !== null;
+  PROFILE = newer(local.get(KEYS.profile), SERVER ? await getJson("/api/profile") : null);
+  MANUAL = SERVER ? (await getJson("/api/manual")) || [] : [];
+  buildData();
+  state.target = (Math.floor(NOW.total / 500) + 1) * 500;
+  applySerial(serverPlan && serverPlan.items ? serverPlan : local.get(KEYS.plan));
+  renderUpcoming();
+  render();
+  if (!PROFILE) $("import-status").textContent = "先从落雪或水鱼导入成绩";
+}
+
+const IMPORT_SOURCES = {
+  lxns: { name: "落雪", placeholder: "个人 API 密钥",
+    hint: `在<a href="https://maimai.lxns.net/user/profile" target="_blank" rel="noopener">落雪的账号详情</a>里生成只读 API 密钥。` },
+  divingfish: { name: "水鱼", placeholder: "成绩导入 Token",
+    hint: `在<a href="https://www.diving-fish.com/maimaidx/prober/" target="_blank" rel="noopener">水鱼查分器</a>的“编辑个人资料”里生成成绩导入 Token。` },
+};
+let importing = null;
+async function fetchLxns(token) {
+  const get = async path => {
+    const r = await fetch(`https://maimai.lxns.net/api/v0/user/maimai/player${path}`, { headers: { "X-User-Token": token } });
+    const body = await r.json().catch(() => null);
+    if (!r.ok || !body?.success) throw new Error(body?.message || `HTTP ${r.status}`);
+    return body.data;
+  };
+  const player = await get("");
+  const list = await get("/scores");
+  return {
+    source: "lxns", fetchedAt: new Date().toISOString(), player: { name: player.name, rating: player.rating },
+    scores: list.filter(s => s.type !== "utage").map(s => ({ music_id: s.id % 10000, type: s.type === "standard" ? "std" : "dx",
+      difficulty: DIFFS[s.level_index], achievement: s.achievements, combo: s.fc || null })),
+  };
+}
+async function fetchDivingFish(token) {
+  const r = await fetch("https://www.diving-fish.com/api/maimaidxprober/player/records", { headers: { "Import-Token": token } });
+  const body = await r.json().catch(() => null);
+  if (!r.ok) throw new Error(body?.message || `HTTP ${r.status}`);
+  return {
+    source: "divingfish", fetchedAt: new Date().toISOString(), player: { name: body.nickname || body.username, rating: body.rating },
+    scores: body.records.filter(x => x.song_id < 100000).map(x => ({ music_id: x.song_id % 10000, type: x.type === "DX" ? "dx" : "std",
+      difficulty: DIFFS[x.level_index], achievement: x.achievements, combo: x.fc || null })),
+  };
+}
+function openImport(src) {
+  importing = src;
+  const saved = local.get(KEYS.tokens) || {};
+  $("import-title").textContent = `从${IMPORT_SOURCES[src].name}导入`;
+  $("import-hint").innerHTML = IMPORT_SOURCES[src].hint;
+  $("import-token").placeholder = IMPORT_SOURCES[src].placeholder;
+  $("import-token").value = saved[src] || "";
+  $("import-remember").checked = Boolean(saved[src]);
+  $("import-error").textContent = "";
+  $("import-dialog").showModal();
+  $("import-token").focus();
+}
+document.querySelector(".tools").addEventListener("click", e => {
+  const b = e.target.closest("[data-import]"); if (b) openImport(b.dataset.import);
+});
+$("import-cancel").addEventListener("click", () => $("import-dialog").close());
+$("import-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const token = $("import-token").value.trim();
+  if (!token) { $("import-error").textContent = "先填写 token"; return; }
+  $("import-go").disabled = true;
+  $("import-go").textContent = "导入中…";
+  $("import-error").textContent = "";
+  try {
+    const profile = importing === "lxns" ? await fetchLxns(token) : await fetchDivingFish(token);
+    const saved = local.get(KEYS.tokens) || {};
+    if ($("import-remember").checked) saved[importing] = token; else delete saved[importing];
+    local.set(KEYS.tokens, saved);
+    const before = PROFILE ? NOW.total : null, plan = serial();
+    PROFILE = profile;
+    local.set(KEYS.profile, profile);
+    buildData();
+    applySerial(plan);
+    render();
+    $("import-dialog").close();
+    $("import-status").textContent = `已导入 ${profile.scores.length} 条` + (before == null ? "" : ` · ${before} → ${NOW.total}`);
+    setTimeout(() => { $("import-status").textContent = ""; }, 8000);
+  } catch (err) {
+    $("import-error").textContent = err instanceof TypeError ? "连不上服务器，检查一下网络" : `导入失败：${err.message}`;
+  } finally {
+    $("import-go").disabled = false;
+    $("import-go").textContent = "导入";
+  }
+});
+
+// the lower area fills the screen under the sticky scoreboard, whatever height it wraps to
+new ResizeObserver(([entry]) => document.documentElement.style.setProperty("--board-h", `${entry.target.offsetHeight}px`))
+  .observe(document.querySelector(".board"));
+// the filter row ends where the table ends: inside the candidates pane's scrollbar gutter and right padding
+new ResizeObserver(([entry]) => {
+  const pane = entry.target, table = pane.querySelector("table");
+  const inset = pane.getBoundingClientRect().right - table.getBoundingClientRect().right;
+  document.documentElement.style.setProperty("--table-inset", `${Math.max(0, Math.round(inset))}px`);
+}).observe($("cand-scroll"));
+
+boot();
+</script>
+</body>
+</html>
