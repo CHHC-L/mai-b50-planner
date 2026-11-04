@@ -10,7 +10,7 @@ Chart constants for the Japanese server are kept too.
 
 ## The web page
 
-Live at **https://chhc-l.github.io/mai-b50-planner/** once Pages is enabled (see [Deploying](#deploying-to-github-pages)).
+Live at **https://chhc-l.github.io/mai-b50-planner/** (see [Deploying](#deploying)).
 
 1. **Import your scores.** Click **从落雪导入** (LXNS) or **从水鱼导入** (Diving-Fish) at the top right and paste a token:
    - **LXNS**: a read-only API key from [maimai.lxns.net → 账号详情](https://maimai.lxns.net/user/profile).
@@ -73,8 +73,8 @@ communities. Song titles, charts and other game content belong to SEGA and their
 
 `.github/workflows/update-data.yml` runs every day at 03:37 China time, and on demand from the Actions tab. It
 commits the rebuilt files whenever any chart changed, so the git history of `data/` doubles as a history of
-constant changes. When it commits, it also redeploys the page. A version must be listed in
-`scripts/update_data.py` for its rules to be applied:
+constant changes. The live page picks up the new data at the blog's next daily deploy (see
+[Deploying](#deploying)). A version must be listed in `scripts/update_data.py` for its rules to be applied:
 
 - a new JP version goes in `JP_VERSIONS`;
 - a new CN version goes in `CN_JP_BASIS`, together with the JP version it runs on.
@@ -82,16 +82,19 @@ constant changes. When it commits, it also redeploys the page. A version must be
 When an unknown version shows up, the workflow fails and GitHub emails you. GitHub turns off scheduled workflows
 after 60 days without activity in the repository; re-enable it from the Actions tab if that happens.
 
-## Deploying to GitHub Pages
+## Deploying
 
-The site is the `web/` folder. `.github/workflows/pages.yml` publishes it.
+The page is served by the blog, [CHHC-L/CHHC-L.github.io](https://github.com/CHHC-L/CHHC-L.github.io): every blog
+deploy clones this repository and publishes `web/` as is at `/mai-b50-planner/`. Pages is turned off here, so this
+repository doesn't claim the same path, and `.github/workflows/pages.yml` stays idle (it only deploys when the
+repository variable `PAGES_ENABLED` is `true`).
 
-1. **Settings → Pages → Build and deployment → Source: GitHub Actions.**
-2. **Settings → Secrets and variables → Actions → Variables → New repository variable**: name `PAGES_ENABLED`,
-   value `true`. Until this is set, the deploy job is skipped instead of failing.
-3. **Actions → Deploy Pages → Run workflow.**
+The blog redeploys every day at 05:07 China time, after the data update above, and on every push to its `main`. To
+publish a change to `web/` right away:
 
-After that, the page redeploys on every push that changes `web/`, and after every data update that changed a chart.
+```sh
+gh workflow run deploy.yml -R CHHC-L/CHHC-L.github.io
+```
 
 ## Local use
 
