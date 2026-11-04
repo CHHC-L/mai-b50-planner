@@ -880,7 +880,6 @@ async function boot() {
   applySerial(serverPlan && serverPlan.items ? serverPlan : local.get(KEYS.plan));
   renderUpcoming();
   render();
-  if (!PROFILE) $("import-status").textContent = "先从落雪或水鱼导入成绩";
 }
 
 const IMPORT_SOURCES = {
